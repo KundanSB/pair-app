@@ -1,0 +1,38 @@
+# Builds a real, installable Android APK on GitHub's free servers every
+# time you push. No Flutter/Android SDK needed on your own computer.
+# After it finishes: repo -> Actions tab -> click the run -> Artifacts ->
+# download "pair-app-release-apk".
+name: Build Pair APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # lets you also trigger it manually from the Actions tab
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Generate the android/ folder (not checked into the repo)
+        run: flutter create . --platforms=android
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload the APK so you can download it
+        uses: actions/upload-artifact@v4
+        with:
+          name: pair-app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
